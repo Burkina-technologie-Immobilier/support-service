@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model TicketTable {
+  id         String   @id @default(uuid())
+  public_id  String   @unique
+  branch_id  String?
+  user_id    String?
+  full_name  String
+  email      String
+  phone      String?
+  category   String
+  subject    String
+  message    String
+  status     String   @default("open")
+  priority   String   @default("normal")
+  order_id   String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  ticket_messages TicketMessageTable[]
+
+  @@map("tickets")
+}
+
+model TicketMessageTable {
+  id          String      @id @default(uuid())
+  public_id   String      @unique
+  ticket_id   String
+  ticket      TicketTable @relation(fields: [ticket_id], references: [id], onDelete: Cascade)
+  sender_type String
+  sender_id   String?
+  body        String
+  created_at  DateTime    @default(now())
+
+  @@index([ticket_id, created_at])
+  @@map("ticket_messages")
+}
+
+model FaqEntryTable {
+  id            String   @id @default(uuid())
+  public_id     String   @unique
+  category      String
+  question      String
+  answer        String
+  position      Int      @default(0)
+  is_published  Boolean  @default(true)
+  view_count    Int      @default(0)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([category])
+  @@map("faq_entries")
+}
+
+model ChatSessionTable {
+  id         String    @id @default(uuid())
+  public_id  String    @unique
+  user_id    String?
+  agent_id   String?
+  status     String    @default("open")
+  started_at DateTime  @default(now())
+  closed_at  DateTime?
+
+  chat_messages ChatMessageTable[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessageTable {
+  id          String           @id @default(uuid())
+  public_id   String           @unique
+  session_id  String
+  session     ChatSessionTable @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  sender_type String
+  body        String
+  created_at  DateTime         @default(now())
+
+  @@index([session_id, created_at])
+  @@map("chat_messages")
+}
+
+model ReviewTable {
+  id            String   @id @default(uuid())
+  public_id     String   @unique
+  branch_id     String
+  product_id    String
+  user_id       String
+  author_name   String?
+  rating        Int
+  title         String?
+  body          String?
+  is_verified   Boolean  @default(false)
+  order_id      String?
+  helpful_count Int      @default(0)
+  status        String   @default("published")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  review_photos ReviewPhotoTable[]
+  review_votes  ReviewVoteTable[]
+
+  @@unique([product_id, user_id])
+  @@index([product_id])
+  @@index([branch_id])
+  @@index([product_id, rating])
+  @@map("reviews")
+}
+
+model ReviewPhotoTable {
+  id        String      @id @default(uuid())
+  public_id String      @unique
+  review_id String
+  review    ReviewTable @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  url       String
+  position  Int         @default(0)
+
+  @@map("review_photos")
+}
+
+model ReviewVoteTable {
+  review_id  String
+  review     ReviewTable @relation(fields: [review_id], references: [id], onDelete: Cascade)
+  user_id    String
+  is_helpful Boolean
+
+  @@id([review_id, user_id])
+  @@map("review_votes")
+}
