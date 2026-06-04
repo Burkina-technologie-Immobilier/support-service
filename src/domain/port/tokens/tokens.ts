@@ -1,0 +1,9 @@
+export const TICKET_REPOSITORY_PORT = 'TicketRepositoryPort';
+export const TICKET_MESSAGE_REPOSITORY_PORT = 'TicketMessageRepositoryPort';
+export const FAQ_ENTRY_REPOSITORY_PORT = 'FaqEntryRepositoryPort';
+export const CHAT_SESSION_REPOSITORY_PORT = 'ChatSessionRepositoryPort';
+export const CHAT_MESSAGE_REPOSITORY_PORT = 'ChatMessageRepositoryPort';
+export const REVIEW_REPOSITORY_PORT = 'ReviewRepositoryPort';
+export const REVIEW_PHOTO_REPOSITORY_PORT = 'ReviewPhotoRepositoryPort';
+export const REVIEW_VOTE_REPOSITORY_PORT = 'ReviewVoteRepositoryPort';
+export const PUBLIC_ID_GENERATOR_PORT = 'PublicIdGeneratorPort';

@@ -1,0 +1,4 @@
+-- =====================================================================
+--  DEPRECATED — contenu fusionné dans 08_support_service.sql
+--  Ancien review-service (review_db) — ne pas déployer séparément.
+-- =====================================================================

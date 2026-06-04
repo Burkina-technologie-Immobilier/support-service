@@ -1,0 +1,74 @@
+services:
+# =====================================================================================
+# ENV DEV
+# =====================================================================================
+
+  support-service-dev:
+    image: support-service-dev
+    container_name: support-service-dev
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: sh -c "pnpm exec prisma migrate deploy && pnpm exec prisma generate && pnpm run start:dev"
+    ports:
+      - "8205:8205"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      PORT: "8205"
+      DATABASE_URL: postgresql://postgres:postgres@support-db-dev:5432/support_db
+    env_file:
+      - ./src/infrastructure/config/.env.dev
+    depends_on:
+      - support-db-dev
+    profiles: ["dev"]
+
+  support-db-dev:
+    image: postgres:16
+    container_name: support-db-dev
+    environment:
+      POSTGRES_DB: support_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5439:5432"
+    volumes:
+      - pgdata-dev:/var/lib/postgresql/data
+    profiles: ["dev"]
+
+
+# =====================================================================================
+# ENV PROD
+# =====================================================================================
+
+  support-service-prod:
+    container_name: support-service-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8205:8205"
+    env_file:
+      - ./src/infrastructure/config/.env.prod
+    environment:
+      PORT: "8205"
+      DATABASE_URL: postgresql://postgres:postgres@support-db-prod:5432/support_db
+    depends_on:
+      - support-db-prod
+    restart: unless-stopped
+    profiles: ["prod"]
+
+  support-db-prod:
+    image: postgres:16
+    container_name: support-db-prod
+    env_file:
+      - ./src/infrastructure/config/.env.prod
+    volumes:
+      - pgdata-prod:/var/lib/postgresql/data
+    restart: unless-stopped
+    profiles: ["prod"]
+
+volumes:
+  pgdata-dev:
+  pgdata-prod:
