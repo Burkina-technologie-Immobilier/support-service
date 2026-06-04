@@ -19,6 +19,8 @@ import { DeleteTicketValidator } from 'src/domain/service/validators/ticket/dele
 import { GetTicketValidator } from 'src/domain/service/validators/ticket/get-ticket.validator';
 import { UpdateTicketValidator } from 'src/domain/service/validators/ticket/update-ticket.validator';
 import { PrismaModule } from 'src/infrastructure/database/prisma/prisma.module';
+import { AccessGuard } from 'src/domain/service/policies/access.guard';
+import { TicketStatusPolicy } from 'src/domain/service/policies/ticket-status.policy';
 import { TicketControllerAdapter } from './ticket.controller.adapter';
 
 @Module({
@@ -34,8 +36,9 @@ import { TicketControllerAdapter } from './ticket.controller.adapter';
     DeleteTicketValidator,
     {
       provide: CreateTicketUseCase,
-      useFactory: (repo, validator, idGen) => new CreateTicketUseCase(repo, validator, idGen),
-      inject: [TICKET_REPOSITORY_PORT, CreateTicketValidator, PUBLIC_ID_GENERATOR_PORT],
+      useFactory: (repo, validator, idGen, access) =>
+        new CreateTicketUseCase(repo, validator, idGen, access),
+      inject: [TICKET_REPOSITORY_PORT, CreateTicketValidator, PUBLIC_ID_GENERATOR_PORT, AccessGuard],
     },
     {
       provide: GetTicketUseCase,
@@ -49,8 +52,9 @@ import { TicketControllerAdapter } from './ticket.controller.adapter';
     },
     {
       provide: UpdateTicketUseCase,
-      useFactory: (repo, validator) => new UpdateTicketUseCase(repo, validator),
-      inject: [TICKET_REPOSITORY_PORT, UpdateTicketValidator],
+      useFactory: (repo, validator, access, statusPolicy) =>
+        new UpdateTicketUseCase(repo, validator, access, statusPolicy),
+      inject: [TICKET_REPOSITORY_PORT, UpdateTicketValidator, AccessGuard, TicketStatusPolicy],
     },
     {
       provide: DeleteTicketUseCase,

@@ -23,6 +23,8 @@ import { DeleteReviewValidator } from 'src/domain/service/validators/review/dele
 import { GetReviewValidator } from 'src/domain/service/validators/review/get-review.validator';
 import { UpdateReviewValidator } from 'src/domain/service/validators/review/update-review.validator';
 import { PrismaModule } from 'src/infrastructure/database/prisma/prisma.module';
+import { AccessGuard } from 'src/domain/service/policies/access.guard';
+import { ReviewModerationPolicy } from 'src/domain/service/policies/review-moderation.policy';
 import { ReviewControllerAdapter } from './review.controller.adapter';
 
 @Module({
@@ -54,8 +56,9 @@ import { ReviewControllerAdapter } from './review.controller.adapter';
     },
     {
       provide: UpdateReviewUseCase,
-      useFactory: (repo, validator) => new UpdateReviewUseCase(repo, validator),
-      inject: [REVIEW_REPOSITORY_PORT, UpdateReviewValidator],
+      useFactory: (repo, validator, access, moderation) =>
+        new UpdateReviewUseCase(repo, validator, access, moderation),
+      inject: [REVIEW_REPOSITORY_PORT, UpdateReviewValidator, AccessGuard, ReviewModerationPolicy],
     },
     {
       provide: DeleteReviewUseCase,

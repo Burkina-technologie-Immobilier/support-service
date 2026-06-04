@@ -7,6 +7,8 @@ import {
 } from 'src/domain/port/in/ticket/create-ticket.interface.port';
 import { PublicIdGeneratorPort } from 'src/domain/port/in/generate-public-id/generator-public-id.port';
 import { TicketRepositoryPort } from 'src/domain/port/out/ticket.repository.port';
+import { MeublezonePermission } from 'src/domain/enums/meublezone-permission.enum';
+import { AccessGuard } from 'src/domain/service/policies/access.guard';
 import { CreateTicketValidator } from 'src/domain/service/validators/ticket/create-ticket.validator';
 
 export class CreateTicketUseCase implements CreateTicketInterfacePort {
@@ -14,9 +16,14 @@ export class CreateTicketUseCase implements CreateTicketInterfacePort {
     private readonly repository: TicketRepositoryPort,
     private readonly validator: CreateTicketValidator,
     private readonly publicIdGenerator: PublicIdGeneratorPort,
+    private readonly access: AccessGuard,
   ) {}
 
   async execute(command: CreateTicketCommand): Promise<TicketEntity> {
+    this.access.check({
+      permission: MeublezonePermission.TICKET_WRITE,
+      branchId: command.branchId,
+    });
     this.validator.validate(command);
 
     const entity = new TicketEntity({

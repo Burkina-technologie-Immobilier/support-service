@@ -3,33 +3,36 @@ services:
 # ENV DEV
 # =====================================================================================
 
-  user_profile-service-dev:
-    image: user_profile-service-dev
-    container_name: user_profile-service-dev
+  support-service-dev:
+    image: support-service-dev
+    container_name: support-service-dev
     build:
       context: .
       dockerfile: Dockerfile.dev
     command: sh -c "pnpm exec prisma migrate deploy && pnpm exec prisma generate && pnpm run start:dev"
     ports:
-      - "3000:3000"
+      - "8205:8205"
     volumes:
       - .:/app
       - /app/node_modules
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@user_profile-db-dev:5432/user_profile-db
+      PORT: "8205"
+      DATABASE_URL: postgresql://postgres:postgres@support-db-dev:5432/support_db
     env_file:
-      - .env
+      - ./src/infrastructure/config/.env.dev
     depends_on:
-      - user_profile-db-dev
+      - support-db-dev
     profiles: ["dev"]
 
-  user_profile-db-dev:
+  support-db-dev:
     image: postgres:16
-    container_name: user_profile-db-dev
-    env_file:
-      - .env
+    container_name: support-db-dev
+    environment:
+      POSTGRES_DB: support_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "5433:5432"
+      - "5439:5432"
     volumes:
       - pgdata-dev:/var/lib/postgresql/data
     profiles: ["dev"]
@@ -39,24 +42,26 @@ services:
 # ENV PROD
 # =====================================================================================
 
-  user_profile-service-prod:
-    container_name: user_profile-service-prod
+  support-service-prod:
+    container_name: support-service-prod
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
-      - "5555:5555"
+      - "8205:8205"
     env_file:
       - ./src/infrastructure/config/.env.prod
+    environment:
+      PORT: "8205"
+      DATABASE_URL: postgresql://postgres:postgres@support-db-prod:5432/support_db
     depends_on:
-      - user_profile-db-prod
+      - support-db-prod
     restart: unless-stopped
     profiles: ["prod"]
 
-  user_profile-db-prod:
+  support-db-prod:
     image: postgres:16
-    container_name: user_profile-db-prod
+    container_name: support-db-prod
     env_file:
       - ./src/infrastructure/config/.env.prod
     volumes:

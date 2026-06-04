@@ -7,12 +7,17 @@ import {
   UpdateReviewInterfacePort,
 } from 'src/domain/port/in/review/update-review.interface.port';
 import { ReviewRepositoryPort } from 'src/domain/port/out/review.repository.port';
+import { MeublezonePermission } from 'src/domain/enums/meublezone-permission.enum';
+import { AccessGuard } from 'src/domain/service/policies/access.guard';
+import { ReviewModerationPolicy } from 'src/domain/service/policies/review-moderation.policy';
 import { UpdateReviewValidator } from 'src/domain/service/validators/review/update-review.validator';
 
 export class UpdateReviewUseCase implements UpdateReviewInterfacePort {
   constructor(
     private readonly repository: ReviewRepositoryPort,
     private readonly validator: UpdateReviewValidator,
+    private readonly access: AccessGuard,
+    private readonly reviewModerationPolicy: ReviewModerationPolicy,
   ) {}
 
   async execute(query: GetReviewQuery, command: UpdateReviewCommand): Promise<ReviewEntity> {
@@ -21,6 +26,15 @@ export class UpdateReviewUseCase implements UpdateReviewInterfacePort {
     const entity = await this.repository.findByPublicId(query.publicId);
     if (!entity) {
       throw new ApplicationError(CodesError.REVIEW_NOT_FOUND);
+    }
+    this.access.check({
+      permission: command.status
+        ? MeublezonePermission.REVIEW_MODERATE
+        : MeublezonePermission.REVIEW_WRITE,
+      branchId: entity.branchId,
+    });
+    if (command.status) {
+      this.reviewModerationPolicy.assertModerationTransition(entity.status, command.status);
     }
 
     entity.update({

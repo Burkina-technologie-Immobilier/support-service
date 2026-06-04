@@ -7,12 +7,17 @@ import {
   UpdateTicketInterfacePort,
 } from 'src/domain/port/in/ticket/update-ticket.interface.port';
 import { TicketRepositoryPort } from 'src/domain/port/out/ticket.repository.port';
+import { MeublezonePermission } from 'src/domain/enums/meublezone-permission.enum';
+import { AccessGuard } from 'src/domain/service/policies/access.guard';
+import { TicketStatusPolicy } from 'src/domain/service/policies/ticket-status.policy';
 import { UpdateTicketValidator } from 'src/domain/service/validators/ticket/update-ticket.validator';
 
 export class UpdateTicketUseCase implements UpdateTicketInterfacePort {
   constructor(
     private readonly repository: TicketRepositoryPort,
     private readonly validator: UpdateTicketValidator,
+    private readonly access: AccessGuard,
+    private readonly ticketStatusPolicy: TicketStatusPolicy,
   ) {}
 
   async execute(query: GetTicketQuery, command: UpdateTicketCommand): Promise<TicketEntity> {
@@ -21,6 +26,13 @@ export class UpdateTicketUseCase implements UpdateTicketInterfacePort {
     const entity = await this.repository.findByPublicId(query.publicId);
     if (!entity) {
       throw new ApplicationError(CodesError.TICKET_NOT_FOUND);
+    }
+    this.access.check({
+      permission: MeublezonePermission.TICKET_WRITE,
+      branchId: entity.branchId,
+    });
+    if (command.status) {
+      this.ticketStatusPolicy.assertTransition(entity.status, command.status);
     }
 
     entity.update({
